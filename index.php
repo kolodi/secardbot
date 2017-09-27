@@ -168,7 +168,7 @@ default:
 
 $botUrl = "https://api.telegram.org/bot" . BOT_TOKEN . "/answerInlineQuery";
 $postFields = array(
-    'inline_query_id' => uniqid(),
+    'inline_query_id' => $inlineQueryId,
     'results' => $photoArray,
     'cache_time' => $cacheTime
 );
