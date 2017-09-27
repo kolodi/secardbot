@@ -1,7 +1,7 @@
 <?php
 
 // PARAMETRI DA MODIFICARE
-$WEBHOOK_URL = 'http://sebot.eu-central-1.elasticbeanstalk.com/app.php';
+$WEBHOOK_URL = 'https://sebot1.herokuapp.com/app.php';
 
 // misherbot
 //$BOT_TOKEN = '427968656:AAFpi4bosqiIwjNdajtf7AoDsB-NHKdLkqs';
