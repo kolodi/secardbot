@@ -1,0 +1,24 @@
+Warrior
+Mage
+Hunter
+Priest
+Rogue
+Wulven
+Elemental
+Rogue, Wulven
+Priest, Elemental
+Hunter, Rogue
+Hunter, Wulven
+Warrior, Wulven
+Warrior, Elemental
+Warrior, Mage
+Warrior, Priest
+Hunter, Priest
+Mage, Elemental
+Mage, Priest
+Wulven, Elemental
+Mage, Wulven
+Mage, Rogue
+Mage, Hunter
+Rogue, Elemental
+Warrior, Mage, Hunter

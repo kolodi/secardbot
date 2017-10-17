@@ -1,6 +1,6 @@
 <?php
-//define("BOT_TOKEN", "427968656:AAFpi4bosqiIwjNdajtf7AoDsB-NHKdLkqs");
-define("BOT_TOKEN", "430231750:AAGMP0j-h4nwesVc8ZjNDYLzg2G3peXOZfk");
+define("BOT_TOKEN", "427968656:AAFpi4bosqiIwjNdajtf7AoDsB-NHKdLkqs");
+//define("BOT_TOKEN", "430231750:AAGMP0j-h4nwesVc8ZjNDYLzg2G3peXOZfk");
 define("MIN_QUERY_LENGTH", 3);
 define("MAX_QUERY_LENGTH", 50);
 $content = file_get_contents("php://input");
@@ -8,7 +8,7 @@ $content = file_get_contents("php://input");
 $update = json_decode($content, true);
 if(!$update)
 {
-  exit;
+  exit("no input");
 }
 
 $q = "";
