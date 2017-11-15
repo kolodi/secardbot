@@ -1,6 +1,8 @@
 <?php
 
-$pdo = include "db.php";
+include "db.php";
+$db = new DB();
+$pdo = $db->pdo;
 
 // $sth = $dbh->prepare("SELECT * FROM cards");
 // $sth->execute();

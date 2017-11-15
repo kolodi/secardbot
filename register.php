@@ -1,6 +1,6 @@
 <?php
 
-$webhook_url = "https://" . $_SERVER['SERVER_NAME'] . dirname($_SERVER['REQUEST_URI']) . "/BOT.php";
+$webhook_url = "https://" . $_SERVER['SERVER_NAME'] . dirname($_SERVER['REQUEST_URI']) . "/bot.php";
 
 function SendReady() {
   global $result;

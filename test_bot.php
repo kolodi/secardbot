@@ -1,6 +1,5 @@
 <?php
-define("MIN_QUERY_LENGTH", 2);
-define("MAX_QUERY_LENGTH", 50);
+//TODO: save user request in db
 
 header('Content-Type: application/json');
 
@@ -30,16 +29,6 @@ if (!$update)
   exit("no input");
 }
 
-$q = $update['inline_query']['query'];
-
-$queryLenght = strlen($q);
-if ($queryLenght < MIN_QUERY_LENGTH) {
-    Exit("query too short");
-}
-if ($queryLenght > MAX_QUERY_LENGTH) {
-    Exit("query too long");
-}
-
 
 include "lib.php";
 include "db.php";
@@ -63,10 +52,11 @@ $stmt->execute(array_values($inline_query));
 
 
 
+$q = $update['inline_query']['query'];
 $inlineQueryId = $update['inline_query']['id'];
 
 
-$tg = new TG([your_bot_id_here]);
+$tg = new TG('bot_token');
 
 $responce = GetInlineAnswer($q, $db);
 $responce->inline_query_id = $inlineQueryId;
@@ -74,4 +64,4 @@ $responce->inline_query_id = $inlineQueryId;
 $data_string = json_encode($responce);
 
 
-$result = $tg->SendInlineAnswerToTG($data_string);
+//$result = $tg->SendInlineAnswerToTG($data_string);

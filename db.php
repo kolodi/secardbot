@@ -20,14 +20,22 @@ class DB
     {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute();
-        return $stmt->fetchall();
+        return $stmt->fetchall(PDO::FETCH_ASSOC);
     }
 
     public function GetSingleWithSQL($sql)
     {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function GetAllCards()
+    {
+        $sql = "SELECT * FROM `cards`";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchall(PDO::FETCH_ASSOC);
     }
 
 }
