@@ -11,7 +11,7 @@ $pdo = $db->pdo;
 // $result = $sth->fetchAll();
 // print_r($result);
 
-$allCardsJson = file_get_contents("secards.317m.json");
+$allCardsJson = file_get_contents("secards.352m.json");
 $cards = json_decode($allCardsJson, true);
 
 $sql = "INSERT INTO `cards` (id, name, cards_set, imageUrl, faction, classes, type, subtype, cost, attack, attacktype, health, ability, is_unique, rarity, buyprice) \n"
