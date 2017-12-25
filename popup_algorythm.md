@@ -10,3 +10,17 @@ Commands:
 /popupResults <Name> - display current popup statistics, or finished one 
 /reportScore <[your_score]-[opponets_score]> - Report match results, example: 2 - 1. Return formatted result and  /confirmScore command for opponent to confirm
 /confirmScore - confirm score reported by your opponent, error returned when no score was reported by your opponent, next opponent info for both partecipants returned (or for a winner only if playoff)
+
+start -  Create new tournament
+help - Display help
+newPopup - Create a popup
+startPopup - Begin popup
+cancelPopup - Cancel and delete popup
+joinPopup - Join popup
+quitPopup - Quit popup
+kick - Kick a partecipant
+partecipants - List of partecipants
+myOpponent - Display you current opponent
+popupResults - Display a popup statistics
+reportScore - Report match results
+confirmScore - Confirm score reported by your opponent
