@@ -1,11 +1,14 @@
 <?php
+define("API_PATH", "https://api.telegram.org/bot");
 class TG
 {
     public $bot_token = ""; // set  
+    private $apiWithToken;
 
     function __construct($_bot_token)
     {
         $this->bot_token = $_bot_token;
+        $this->apiWithToken = API_PATH . $_bot_token;
     }
     public function CreateJSON($obj)
     {
@@ -35,6 +38,37 @@ class TG
             $result = $e->getMessage();
         }
         return $result;
+    }
+
+    public function SendMessage($data_string) 
+    {
+        $result;
+        try {
+
+            $ch = $this->PrepareCurlPost($data_string, "/sendMessage");
+            
+            $result = curl_exec($ch);
+
+            if (FALSE === $result)
+            throw new Exception(curl_error($ch), curl_errno($ch));
+
+        } catch (Exception $e) {
+            $result = $e->getMessage();
+        }
+        return $result;
+    }
+
+    function PrepareCurlPost($data_string, $method) 
+    {
+        $ch = curl_init($this->apiWithToken . $method);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($data_string)
+        ));
+        return $ch;
     }
 
 
@@ -78,6 +112,18 @@ class PhotoResult
         $this->caption = "";
         $this->photo_width = 344;
         $this->photo_height = 480;
+    }
+}
+
+class TextMessage
+{
+    public $chat_id;
+    public $text;
+
+    function __construct($chat_id, $text)
+    {
+        $this->chat_id = $chat_id;
+        $this->text = $text;
     }
 }
 
