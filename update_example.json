@@ -1,0 +1,48 @@
+{
+    "ok": true,
+    "result": [
+        {
+            "update_id": 444911776,
+            "message": {
+                "message_id": 255,
+                "from": {
+                    "id": 190257574,
+                    "is_bot": false,
+                    "first_name": "Kolodi",
+                    "username": "kolodim",
+                    "language_code": "en"
+                },
+                "chat": {
+                    "id": -1001212888265,
+                    "title": "TG bots",
+                    "type": "supergroup"
+                },
+                "date": 1514377625,
+                "reply_to_message": {
+                    "message_id": 254,
+                    "from": {
+                        "id": 494619184,
+                        "is_bot": true,
+                        "first_name": "Popup Bot",
+                        "username": "setourbot"
+                    },
+                    "chat": {
+                        "id": -1001212888265,
+                        "title": "TG bots",
+                        "type": "supergroup"
+                    },
+                    "date": 1514377615,
+                    "text": "/new_popup, please give unique name to the popup:",
+                    "entities": [
+                        {
+                            "offset": 0,
+                            "length": 10,
+                            "type": "bot_command"
+                        }
+                    ]
+                },
+                "text": "AwsomPop#1"
+            }
+        }
+    ]
+}

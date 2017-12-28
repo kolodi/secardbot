@@ -28,11 +28,11 @@ class TG
                 'Content-Type: application/json',
                 'Content-Length: ' . strlen($data_string)
             ));
-            
+
             $result = curl_exec($ch);
 
-            if (FALSE === $result)
-            throw new Exception(curl_error($ch), curl_errno($ch));
+            if (false === $result)
+                throw new Exception(curl_error($ch), curl_errno($ch));
 
         } catch (Exception $e) {
             $result = $e->getMessage();
@@ -40,17 +40,17 @@ class TG
         return $result;
     }
 
-    public function SendMessage($data_string) 
+    public function SendMessage($data_string)
     {
         $result;
         try {
 
             $ch = $this->PrepareCurlPost($data_string, "/sendMessage");
-            
+
             $result = curl_exec($ch);
 
-            if (FALSE === $result)
-            throw new Exception(curl_error($ch), curl_errno($ch));
+            if (false === $result)
+                throw new Exception(curl_error($ch), curl_errno($ch));
 
         } catch (Exception $e) {
             $result = $e->getMessage();
@@ -58,7 +58,37 @@ class TG
         return $result;
     }
 
-    function PrepareCurlPost($data_string, $method) 
+    public function SendSimpleMessage($chat_id, $message) {
+        $msg = new TextMessage($chat_id, $message);
+        $msg_string = json_encode($msg);
+        return $this->SendMessage($msg_string);
+    }
+
+    public function SendPromptMessage($chat_id, $message, $reply_to_message_id) {
+        $msg = new PromptMessage($chat_id, $message, $reply_to_message_id);
+        $msg_string = json_encode($msg);
+        return $this->SendMessage($msg_string);
+    }
+
+    public function GetLastUpdate()
+    {
+        $result = false;
+        try {
+            $data = array("offset" => -1);
+            $data_string = json_encode($data);
+            $ch = $this->PrepareCurlPost($data_string, "/getUpdates");
+            $response = curl_exec($ch);
+            if (false === $response)
+                throw new Exception(curl_error($ch), curl_errno($ch));
+            else
+                $result = $response;
+        } catch (Exception $e) {
+            echo $e->getMessage();
+        }
+        return $result;
+    }
+
+    function PrepareCurlPost($data_string, $method)
     {
         $ch = curl_init($this->apiWithToken . $method);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
@@ -70,6 +100,7 @@ class TG
         ));
         return $ch;
     }
+
 
 
 }
@@ -124,6 +155,26 @@ class TextMessage
     {
         $this->chat_id = $chat_id;
         $this->text = $text;
+    }
+}
+
+class ReplyMarkup
+{
+    public $force_reply = true;
+  	public $selective = true;
+}
+
+class PromptMessage extends TextMessage
+{
+    public $reply_to_message_id;
+    public $disable_notification = true;
+    public $reply_markup;
+
+    function __construct($chat_id, $text, $reply_to_message_id) {
+        $this->chat_id = $chat_id;
+        $this->text = $text;
+        $this->reply_to_message_id = $reply_to_message_id;
+        $this->reply_markup = new ReplyMarkup();
     }
 }
 
