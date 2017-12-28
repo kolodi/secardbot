@@ -212,5 +212,18 @@ class ChallongeAPI {
     }
     return $this->makeCall("tournaments/$tournament_id/matches/$match_id", $params, "put");
   }
+
+  public function hasErrors()
+  {
+      return count($this->errors) > 0 ? true : false;
+  }
+
+  public function listErrors()
+  {
+    foreach ($this->errors as $error) {
+      echo $error."\n"; // Output the error message
+    }
+  }
+
 }
 ?>
