@@ -39,7 +39,7 @@ $popup_params = array(
         ,"description" => $description
         ,"tournament_type" => isset($tournament_types[$tournament_type]) ? $tournament_types[$tournament_type] : $tournament_types[0]
         ,"signup_cap" => $max_participants
-       // ,"url" => $url
+        ,"url" => $url
     )
 );
 if($tournament_start != ""){
@@ -80,11 +80,6 @@ if($c->hasErrors()) {
 echo "<pre><h1>Add Participants</h1>";
 echo "TO Test";
 
-/***************************************************
- * Cancel Tournament
- ***************************************************/
-echo "<pre><h1>Cancel Tournament</h1>";
-echo "TO Test";
 
 /***************************************************
  * Retrieve Tournaments
@@ -123,3 +118,8 @@ if($tournaments != false && $tournaments->Count() > 0)
 }
 */
 
+/***************************************************
+ * Cancel Tournament
+ ***************************************************/
+echo "<pre><h1>Cancel Tournament</h1>";
+echo "TO Test";
