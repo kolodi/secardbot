@@ -142,14 +142,14 @@ switch ($telegramCommand) {
 
         $hasPopupRunning = false;
         foreach ($challongePendingPlusInProgress as $t) {
-            if($telegramUser["id"] == $t["creator"]) {
+            if ($telegramUser["id"] == $t["creator"]) {
                 $hasPopupRunning = true;
                 $txt = "You already have a popup running, please finish current one before creating new one";
                 $debugOutput = $telegramAPI->SendSimpleMessage($telegramMessage["chat"]["id"], $txt);
                 break;
             }
         }
-        if($hasPopupRunning) break;
+        if ($hasPopupRunning) break;
 
         if (!$telegramText) {
             $txt = "/new_popup, please give unique name to the popup:";
@@ -165,7 +165,12 @@ switch ($telegramCommand) {
 
         $popup_params = array(
             "tournament" => array(
-                "game_name" => 'Shadow Era', "name" => $telegramText, "description" => $description, "tournament_type" => isset($tournament_types[$tournament_type]) ? $tournament_types[$tournament_type] : $tournament_types['single'], "signup_cap" => $max_participants, "url" => $url
+                "game_name" => 'Shadow Era',
+                "name" => $telegramText,
+                "description" => $description,
+                "tournament_type" => isset($tournament_types[$tournament_type]) ? $tournament_types[$tournament_type] : $tournament_types['single'],
+                "signup_cap" => $max_participants,
+                "url" => $url
             )
         );
         $challonge_response = $challongeAPI->createTournament($popup_params);
