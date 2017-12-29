@@ -38,34 +38,35 @@ $commands = array(
 $telegramAPI = new TG($telegram_token);
 $challongeAPI = new ChallongeAPI($challonge_token);
 
-$telegram = json_decode($telegramAPI->GetLastUpdate(),true);
+$telegram = json_decode($telegramAPI->GetLastUpdate(), true);
 $challonge = $challongeAPI->getTournaments(array(
     //--Tournament Filter--
-     "state" => "pending,in_progress"
+    "state" => "all"
     //"created_after" => date("Y-m-d", strtotime("-1 day"))
     //,"created_before" => date("Y-m-d")
 ));
 
 $challongePending = array();
 $challongeInProgress = array();
-if(isset($challonge->tournament)){
+if (isset($challonge->tournament)) {
     //--Multiple active and pending tournaments--
-    foreach($challonge->tournament as $tournament){
-        if($tournament->state == "pending") {
+    foreach ($challonge->tournament as $tournament) {
+        if ($tournament->state == "pending") {
             $tournamentVariableName = "challongePending";
-        }else{
+        } else {
             $tournamentVariableName = "challongeInProgress";
         }
-        $creator = explode("_",$tournament->url."");
+        $creator = explode("_", $tournament->url . "");
         $creator = isset($creator[0]) ? $creator[0] : '';
         ${$tournamentVariableName}[] = array(
-             'id' => $tournament->id.""
-            ,'name' => $tournament->name.""
-            ,'url' => $tournament->url.""
-            ,'creator' => $creator
+            'id' => $tournament->id . "",
+            'name' => $tournament->name . "",
+            'url' => $tournament->url . "",
+            'creator' => $creator
         );
     }
 }
+$challongePendingPlusInProgress = array_merge($challongePending, $challongeInProgress);
 
 /*****************************************
  * VALIDATION
@@ -76,15 +77,16 @@ if ($telegram["ok"] == false)
     die("Last Update Not OK");
 if ($telegram["result"] == false || count($telegram["result"]) == 0)
     die("No result in update");
-if(isset($telegram["result"][0]["message"])) {
+if (isset($telegram["result"][0]["message"])) {
     $telegramMessage = $telegram["result"][0]["message"];
-}elseif(isset($telegram["result"][0]["edited_message"])) {
+} elseif (isset($telegram["result"][0]["edited_message"])) {
     $telegramMessage = $telegram["result"][0]["edited_message"];
-}else{
+} else {
     die("Unknown message");
 }
 
 $telegramText = $telegramMessage["text"];
+$telegramUser = $telegramMessage["from"];
 $telegramCommand = "";
 if (isset($telegramMessage["entities"])) {
     foreach ($telegramMessage["entities"] as $entity) {
@@ -131,12 +133,25 @@ switch ($telegramCommand) {
         $debugOutput = $tg->SendMessage($msg_string);
         break;
     case "/new_popup":
+
         if ($telegramMessage["chat"]["type"] == "private") {
             $txt = "Popup can only be created in public chat";
             $debugOutput = $telegramAPI->SendSimpleMessage($telegramMessage["chat"]["id"], $txt);
             break;
         }
-        if(!$telegramText) {
+
+        $hasPopupRunning = false;
+        foreach ($challongePendingPlusInProgress as $t) {
+            if($telegramUser["id"] == $t["creator"]) {
+                $hasPopupRunning = true;
+                $txt = "You already have a popup running, please finish current one before creating new one";
+                $debugOutput = $telegramAPI->SendSimpleMessage($telegramMessage["chat"]["id"], $txt);
+                break;
+            }
+        }
+        if($hasPopupRunning) break;
+
+        if (!$telegramText) {
             $txt = "/new_popup, please give unique name to the popup:";
             $debugOutput = $telegramAPI->SendPromptMessage($telegramMessage["chat"]["id"], $txt, $telegramMessage["message_id"]);
             break;
@@ -150,12 +165,7 @@ switch ($telegramCommand) {
 
         $popup_params = array(
             "tournament" => array(
-                 "game_name" => 'Shadow Era'
-                ,"name" => $telegramText
-                ,"description" => $description
-                ,"tournament_type" => isset($tournament_types[$tournament_type]) ? $tournament_types[$tournament_type] : $tournament_types['single']
-                ,"signup_cap" => $max_participants
-                ,"url" => $url
+                "game_name" => 'Shadow Era', "name" => $telegramText, "description" => $description, "tournament_type" => isset($tournament_types[$tournament_type]) ? $tournament_types[$tournament_type] : $tournament_types['single'], "signup_cap" => $max_participants, "url" => $url
             )
         );
         $challonge_response = $challongeAPI->createTournament($popup_params);
