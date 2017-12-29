@@ -3,7 +3,8 @@ class Tournament
 {
     public $id;
     public $state;
-    public $partecipants;
+    public $participants;
+    public $url;
 }
 
 class Popup extends Tournament
