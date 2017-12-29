@@ -70,6 +70,12 @@ class TG
         return $this->SendMessage($msg_string);
     }
 
+    public function SendPromptWithButtonsInColumn($chat_id, $message, $reply_to_message_id, $buttons) {
+        $msg = new MessageWithButtons($chat_id, $message, $reply_to_message_id, $buttons);
+        $msg_string = json_encode($msg);
+        return $this->SendMessage($msg_string);
+    }
+
     public function GetLastUpdate()
     {
         $result = false;
@@ -164,6 +170,19 @@ class ReplyMarkup
   	public $selective = true;
 }
 
+class ReplyButtonsInColumn extends ReplyMarkup
+{
+    public $keyboard = array();
+    public $one_time_keyboard = true;
+
+    function __construct($buttons) {
+        foreach($buttons as $b_text) {
+            array_push($this->keyboard, array($b_text));
+        }
+
+    }
+}
+
 class PromptMessage extends TextMessage
 {
     public $reply_to_message_id;
@@ -175,6 +194,16 @@ class PromptMessage extends TextMessage
         $this->text = $text;
         $this->reply_to_message_id = $reply_to_message_id;
         $this->reply_markup = new ReplyMarkup();
+    }
+}
+
+class MessageWithButtons extends PromptMessage 
+{
+    function __construct($chat_id, $text, $reply_to_message_id, $buttons) {
+        $this->chat_id = $chat_id;
+        $this->text = $text;
+        $this->reply_to_message_id = $reply_to_message_id;
+        $this->reply_markup = new ReplyButtonsInColumn($buttons);
     }
 }
 
