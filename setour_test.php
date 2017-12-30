@@ -248,6 +248,9 @@ switch ($telegramCommand) {
     case "/confirm_score":
         //TODO: implement
         break;
+    case "/popups":
+        //TODO: implement
+        break;
 }
 
 header('Content-Type: application/json');

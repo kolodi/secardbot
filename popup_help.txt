@@ -1,12 +1,13 @@
 /start -  Create new tournament
 /help - Display help
 /new_popup - Create a popup
+/popups - List of popups
 /start_popup - Begin popup
 /cancel_popup - Cancel and delete popup
 /join_popup - Join popup
 /quit_popup - Quit popup
-/kick - Kick a partecipant
-/participants - List of partecipants
+/kick - Kick a participant
+/participants - List of participants
 /opponent - Display you current opponent
 /popup_results - Display a popup statistics
 /report_score - Report match results
