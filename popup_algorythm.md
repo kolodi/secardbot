@@ -4,6 +4,7 @@ help - Display help
 new_popup - Create a popup
 start_popup - Begin popup
 cancel_popup - Cancel and delete popup
+popups - List all active popups
 join_popup - Join popup
 quit_popup - Quit popup
 kick - Kick a partecipant

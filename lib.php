@@ -58,21 +58,42 @@ class TG
         return $result;
     }
 
-    public function SendSimpleMessage($chat_id, $message) {
-        $msg = new TextMessage($chat_id, $message);
+    public function SendSimpleMessage($chat_id, $text, $disable_notification = true) {
+        $msg = new TextMessage($chat_id, $text);
         $msg_string = json_encode($msg);
         return $this->SendMessage($msg_string);
     }
 
-    public function SendPromptMessage($chat_id, $message, $reply_to_message_id) {
-        $msg = new PromptMessage($chat_id, $message, $reply_to_message_id);
+    public function SendPromptMessage($chat_id, $text, $reply_to_message_id) {
+        $msg = new PromptMessage(
+        	$chat_id, 
+        	$text, 
+        	$reply_to_message_id, 
+        	new ForceReply()
+        );
         $msg_string = json_encode($msg);
         return $this->SendMessage($msg_string);
     }
 
-    public function SendPromptWithButtonsInColumn($chat_id, $message, $reply_to_message_id, $buttons) {
-        $msg = new MessageWithButtons($chat_id, $message, $reply_to_message_id, $buttons);
+    public function SendPromptWithButtonsInColumn($chat_id, $text, $reply_to_message_id, $buttons) {
+    	$msg = new PromptMessage(
+    		$chat_id, 
+    		$text, 
+    		$reply_to_message_id, 
+    		new ReplyKeyboardMarkupButtonsInColumn($buttons)
+    	);
         $msg_string = json_encode($msg);
+        return $this->SendMessage($msg_string);
+    }
+    
+    public function SendRemoveKeyboardMessage($chat_id, $text, $reply_to_message_id) {
+    	$msg = new PromptMessage(
+    		$chat_id, 
+    		$text, 
+    		$reply_to_message_id, 
+    		new ReplyKeyboardRemove()
+    	);
+    	$msg_string = json_encode($msg);
         return $this->SendMessage($msg_string);
     }
 
@@ -110,6 +131,8 @@ class TG
 
 
 }
+
+//TELEGRAM API TYPES
 
 class InlineQueryAnswer
 {
@@ -156,6 +179,10 @@ class TextMessage
 {
     public $chat_id;
     public $text;
+    public $parse_mode = "Markdown";
+    public $disable_web_page_preview = true;
+    public $disable_notification = true;
+    public $reply_to_message_id;
 
     function __construct($chat_id, $text)
     {
@@ -164,17 +191,38 @@ class TextMessage
     }
 }
 
-class ReplyMarkup
+class PromptMessage extends TextMessage
 {
-    public $force_reply = true;
-  	public $selective = true;
+	public $reply_markup;
+	function __construct($chat_id, $text, $reply_to_message_id, $reply_markup) {
+		parent::__construct($chat_id, $text);
+		$this->reply_to_message_id = $reply_to_message_id;
+		$this->reply_markup = $reply_markup;
+	}
 }
 
-class ReplyButtonsInColumn extends ReplyMarkup
+class ForceReply
 {
-    public $keyboard = array();
-    public $one_time_keyboard = true;
+	public $force_reply = true;
+	public $selective = true;
+}
 
+class ReplyKeybordRemove 
+{	
+	public $remove_keyboard = true;
+	public $selective = true;
+}
+
+class ReplyKeyboardMarkup
+{
+	public $keyboard = array();
+	public $resize_keyboard = false;
+	public $one_time_keyboard = true;
+	public $selective = true;
+}
+
+class ReplyKeyboardMarkupButtonsInColumn extends ReplyKeyboardMarkup
+{
     function __construct($buttons) {
         foreach($buttons as $b_text) {
             array_push($this->keyboard, array($b_text));
@@ -182,28 +230,3 @@ class ReplyButtonsInColumn extends ReplyMarkup
 
     }
 }
-
-class PromptMessage extends TextMessage
-{
-    public $reply_to_message_id;
-    public $disable_notification = true;
-    public $reply_markup;
-
-    function __construct($chat_id, $text, $reply_to_message_id) {
-        $this->chat_id = $chat_id;
-        $this->text = $text;
-        $this->reply_to_message_id = $reply_to_message_id;
-        $this->reply_markup = new ReplyMarkup();
-    }
-}
-
-class MessageWithButtons extends PromptMessage 
-{
-    function __construct($chat_id, $text, $reply_to_message_id, $buttons) {
-        $this->chat_id = $chat_id;
-        $this->text = $text;
-        $this->reply_to_message_id = $reply_to_message_id;
-        $this->reply_markup = new ReplyButtonsInColumn($buttons);
-    }
-}
-
