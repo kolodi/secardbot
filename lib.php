@@ -58,8 +58,10 @@ class TG
         return $result;
     }
 
-    public function SendSimpleMessage($chat_id, $text, $disable_notification = true) {
+    public function SendSimpleMessage($chat_id, $text, $disable_notification = true, $parse_mode = "Markdown") {
         $msg = new TextMessage($chat_id, $text);
+        $msg->parse_mode = $parse_mode;
+        $msg->disable_notification = $disable_notification;
         $msg_string = json_encode($msg);
         return $this->SendMessage($msg_string);
     }
