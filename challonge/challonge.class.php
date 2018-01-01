@@ -243,6 +243,25 @@ class ChallongeAPI {
   			
   		return false;
   }
+  
+  public function GetParticipantsJSON($tournament_id){
+	  	$callUrl = "https://api.challonge.com/v1/tournaments/";
+	  	$callUrl .= $tournament_id;
+	  	$callUrl .= "/participants.json?api_key=" . $this->api_key;
+	  	
+	  	$result = file_get_contents($callUrl);
+  		
+  		if($result)
+  			$assocArray = json_decode($result, true);
+  		if($assocArray && count($assocArray)) {
+  			foreach($assocArray as &$t)
+  				$t = $t["participant"];
+  			
+  			return $assocArray;
+  		}
+  			
+  		return false;
+  }
 
 }
 ?>

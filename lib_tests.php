@@ -11,8 +11,8 @@ header("content-type: application/json");
 include "challonge/challonge.class.php";
 $challonge_token = "iWTgKx1WNQ48AJ77JMZNSHHfiil64WA7tMCsb0oC"; //Kolodi
 $challongeAPI = new ChallongeAPI($challonge_token);
-$decoded = $challongeAPI->GetTournamentsJSON(array(
-	"state" => "all"
-));
 
+//$decoded = $challongeAPI->GetTournamentsJSON(array("state" => "in_progress"));
+
+$decoded = $challongeAPI->GetParticipantsJSON(4121769);
 echo json_encode($decoded, JSON_PRETTY_PRINT);
