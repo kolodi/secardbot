@@ -224,6 +224,25 @@ class ChallongeAPI {
       echo $error."\n"; // Output the error message
     }
   }
+  
+  public function GetTournamentsJSON($parameters=array())
+  {
+  		$callUrl = "https://api.challonge.com/v1/tournaments.json?";
+  		$parameters["api_key"] = $this->api_key; 
+  		$callUrl .= http_build_query($parameters);
+  		$result = file_get_contents($callUrl);
+  		
+  		if($result)
+  			$assocArray = json_decode($result, true);
+  		if($assocArray && count($assocArray)) {
+  			foreach($assocArray as &$t)
+  				$t = $t["tournament"];
+  			
+  			return $assocArray;
+  		}
+  			
+  		return false;
+  }
 
 }
 ?>
