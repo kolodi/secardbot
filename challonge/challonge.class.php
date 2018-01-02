@@ -239,8 +239,10 @@ class ChallongeAPI {
   				$t = $t["tournament"];
   			
   			return $assocArray;
-  		}
-  			
+  		}else{
+            return array();
+        }
+
   		return false;
   }
   

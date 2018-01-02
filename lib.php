@@ -58,7 +58,13 @@ class TG
         return $result;
     }
 
+    private function escapeSpecialChars($text)
+    {
+        return str_replace(array("_"), array("\\_"), $text);
+    }
+
     public function SendSimpleMessage($chat_id, $text, $disable_notification = true, $parse_mode = "Markdown") {
+        if($parse_mode == "Markdown") $text = $this->escapeSpecialChars($text);
         $msg = new TextMessage($chat_id, $text);
         $msg->parse_mode = $parse_mode;
         $msg->disable_notification = $disable_notification;
@@ -68,8 +74,8 @@ class TG
 
     public function SendPromptMessage($chat_id, $text, $reply_to_message_id) {
         $msg = new PromptMessage(
-        	$chat_id, 
-        	$text, 
+        	$chat_id,
+            $this->escapeSpecialChars($text),
         	$reply_to_message_id, 
         	new ForceReply()
         );
@@ -79,8 +85,8 @@ class TG
 
     public function SendPromptWithButtonsInColumn($chat_id, $text, $reply_to_message_id, $buttons) {
     	$msg = new PromptMessage(
-    		$chat_id, 
-    		$text, 
+    		$chat_id,
+            $this->escapeSpecialChars($text),
     		$reply_to_message_id, 
     		new ReplyKeyboardMarkupButtonsInColumn($buttons)
     	);
@@ -90,8 +96,8 @@ class TG
     
     public function SendRemoveKeyboardMessage($chat_id, $text, $reply_to_message_id) {
     	$msg = new PromptMessage(
-    		$chat_id, 
-    		$text, 
+    		$chat_id,
+            $this->escapeSpecialChars($text),
     		$reply_to_message_id, 
     		new ReplyKeyboardRemove()
     	);
