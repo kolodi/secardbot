@@ -190,7 +190,7 @@ class TextMessage
     public $parse_mode = "Markdown";
     public $disable_web_page_preview = true;
     public $disable_notification = true;
-    public $reply_to_message_id;
+    
 
     function __construct($chat_id, $text)
     {
@@ -199,12 +199,21 @@ class TextMessage
     }
 }
 
-class PromptMessage extends TextMessage
+class ReplyMessage extends TextMessage
+{
+    public $reply_to_message_id;
+    function __construct($chat_id, $text, $reply_to_message_id)
+    {
+        parent::__construct($chat_id, $text, $reply_to_message_id);
+        $this->reply_to_message_id = $reply_to_message_id;
+    }
+}
+
+class PromptMessage extends ReplyMessage
 {
 	public $reply_markup;
 	function __construct($chat_id, $text, $reply_to_message_id, $reply_markup) {
-		parent::__construct($chat_id, $text);
-		$this->reply_to_message_id = $reply_to_message_id;
+		parent::__construct($chat_id, $text, $reply_to_message_id);
 		$this->reply_markup = $reply_markup;
 	}
 }
