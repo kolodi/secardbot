@@ -225,27 +225,75 @@ class ChallongeAPI {
     }
   }
   
-  public function GetTournamentsJSON($parameters=array())
-  {
-  		$callUrl = "https://api.challonge.com/v1/tournaments.json?";
-  		$parameters["api_key"] = $this->api_key; 
-  		$callUrl .= http_build_query($parameters);
-  		$result = file_get_contents($callUrl);
-  		
-  		if($result)
-  			$assocArray = json_decode($result, true);
-  		if($assocArray && count($assocArray)) {
-  			foreach($assocArray as &$t)
-  				$t = $t["tournament"];
-  			
-  			return $assocArray;
-  		}else{
-            return array();
-        }
 
-  		return false;
+  public $lastTournaments;
+
+  public function GetTournamentsJSON($parameters = array())
+  {
+    $callUrl = "https://api.challonge.com/v1/tournaments.json?";
+    $parameters["api_key"] = $this->api_key;
+    $callUrl .= http_build_query($parameters);
+    $result = file_get_contents($callUrl);
+
+    if ($result)
+      $assocArray = json_decode($result, true);
+
+    $this->lastTournaments = array();
+    if ($assocArray && count($assocArray)) {
+      foreach ($assocArray as $element) {
+        $t = $element["tournament"];
+        $creator = explode("_", $t["url"])[0];
+        $this->lastTournaments[] = array_merge(
+          $t,
+          array(
+            "creator" => $creator
+          )
+        );
+      }
+      return $this->lastTournaments;
+    } else {
+      return array();
+    }
+
+    return false;
+  }
+
+  public function TestPropertiesInTournament($tournament, $params)
+  {
+    if (count($params) == 0) return true;
+    foreach ($params as $key => $value) {
+      if (isset($tournament[$key]) && $tournament[$key] != $value)
+        return false;
+    }
+    return true;
+  }
+
+  public function FilterTournamnets($params) {
+
+    if(!$this->lastTournaments || count($this->lastTournaments) == 0)
+      return false;
+
+    $filtered = array();
+    foreach($this->lastTournaments as $t) {
+      if($this->TestPropertiesInTournament($t, $params)) 
+        $filtered[] = $t;
+    }
+
+    return $filtered;
+  }
+
+  public function HasTournamentWithName($name)
+  {
+    if (!$this->lastTournaments || count($this->lastTournaments) == 0) return false;
+    foreach ($this->lastTournaments as $t) {
+      $tName = trim(strtolower($t["name"]));
+      if ($name == $tName) return true;
+    }
+    return false;
   }
   
+  public $lastParticipants;
+
   public function GetParticipantsJSON($tournament_id){
 	  	$callUrl = "https://api.challonge.com/v1/tournaments/";
 	  	$callUrl .= $tournament_id;
@@ -256,9 +304,11 @@ class ChallongeAPI {
   		if($result)
   			$assocArray = json_decode($result, true);
   		if($assocArray && count($assocArray)) {
-  			foreach($assocArray as &$t)
-  				$t = $t["participant"];
-  			
+  			foreach($assocArray as &$t) {
+          $t = $t["participant"];
+          // TODO: extract telegram user data and IGN
+        }
+        $this->lastParticipants = $assocArray;
   			return $assocArray;
   		}else{
           return array();
@@ -266,6 +316,8 @@ class ChallongeAPI {
   			
   		return false;
   }
+
+  
 
 }
 ?>
