@@ -247,25 +247,19 @@ switch ($telegramCommand) {
             $participants = $challongeAPI->GetParticipantsJSON($tournament_id);
             $max_participants = $challongeTournaments[$challongeTournamentMapByName[$telegramTextLowerTrimmed]]['signup_cap'];
 
-            $counter = 1;
-            $txt = "$telegramText participants: ";
-            foreach($participants as $participant) {
-                $txt .= "\n (" . $counter . ") " . $participant['name'];
-                if($counter > $max_participants) $txt .= " <i>(on waiting list)</i>";
-                $counter++;
-            }
-
-            //--Fillers--
-            for($i = $counter; $i <= $max_participants; $i++){
-                $txt .= "\n (" . $i . ") <i>--</i>" ;
+            if(count($participants) == 0) {
+                $txt = "$telegramText has no participants at the moment";
+            }else{
+                $counter = 1;
+                $txt = "$telegramText participants: ";
+                foreach($participants as $participant) {
+                    $txt .= "\n (" . $counter . ") " . $participant['name'];
+                    $counter++;
+                }
             }
 
             //--Post message--
-            if($counter > $max_participants) {
-                $txt .= "\n You can still /join_popup waiting list";
-            }else {
-                $txt .= "\n Please /join_popup $telegramText";
-            }
+            $txt .= "\n Please /join_popup $telegramText";
             $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, $txt, true, 'HTML');
         }
 
@@ -302,17 +296,17 @@ switch ($telegramCommand) {
 
             if($sessionData[$sessionDataIndex] < 1) {
                 //--Confirm /start_popup for first run of command--
-                $counter = 1;
-                $txt = "$telegramText participants: ";
-                foreach($participants as $participant) {
-                    $txt .= "\n (" . $counter . ") " . $participant['name'];
-                    if($counter > $max_participants) $txt .= " <i>(on waiting list)</i>";
-                    $counter++;
+                if(count($participants) == 0) {
+                    $txt = "$telegramText has no participants at the moment";
+                }else{
+                    $counter = 1;
+                    $txt = "$telegramText participants: ";
+                    foreach($participants as $participant) {
+                        $txt .= "\n (" . $counter . ") " . $participant['name'];
+                        $counter++;
+                    }
                 }
-                //--Fillers--
-                for($i = $counter; $i <= $max_participants; $i++){
-                    $txt .= "\n (" . $i . ") <i>--</i>" ;
-                }
+
                 $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, $txt, true, 'HTML');
                 $txt = "Please confirm action to start popup. ";
                 $debugOutput = $telegramAPI->SendPromptWithButtonsInColumn($telegramChatId, $txt, $telegramMessageId, array(

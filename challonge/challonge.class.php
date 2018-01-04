@@ -260,7 +260,9 @@ class ChallongeAPI {
   				$t = $t["participant"];
   			
   			return $assocArray;
-  		}
+  		}else{
+          return array();
+        }
   			
   		return false;
   }
