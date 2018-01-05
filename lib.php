@@ -72,6 +72,16 @@ class TG
         return $this->SendMessage($msg_string);
     }
 
+    public function SendReplyMessage($chat_id, $text, $reply_to_message_id) {
+        $msg = new ReplyMessage(
+            $chat_id,
+            $this->escapeSpecialChars($text),
+        	$reply_to_message_id
+        );
+        $msg_string = json_encode($msg);
+        return $this->SendMessage($msg_string);
+    }
+
     public function SendPromptMessage($chat_id, $text, $reply_to_message_id) {
         $msg = new PromptMessage(
         	$chat_id,

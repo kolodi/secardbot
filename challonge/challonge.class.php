@@ -282,12 +282,18 @@ class ChallongeAPI {
     return $filtered;
   }
 
-  public function HasTournamentWithName($name)
+  public function GetTournamentByName($name, $tournamentsSubset = array())
   {
-    if (!$this->lastTournaments || count($this->lastTournaments) == 0) return false;
-    foreach ($this->lastTournaments as $t) {
+    $tournaments = $this->lastTournaments;
+
+    if(count($tournamentsSubset) != 0)
+      $tournaments = $tournamentsSubset;
+
+    if (!$tournaments || count($tournaments) == 0) return false;
+
+    foreach ($tournaments as $t) {
       $tName = trim(strtolower($t["name"]));
-      if ($name == $tName) return true;
+      if ($name == $tName) return $t;
     }
     return false;
   }
@@ -309,7 +315,7 @@ class ChallongeAPI {
           // TODO: extract telegram user data and IGN
         }
         $this->lastParticipants = $assocArray;
-  			return $assocArray;
+  			return $this->lastParticipants;
   		}else{
           return array();
         }
