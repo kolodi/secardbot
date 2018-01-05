@@ -311,7 +311,8 @@ switch ($telegramCommand) {
 
         if(count($participants) == 0) {
             $txt = "$telegramText has no participants at the moment";
-            $txt .= "\n Please /join_popup $telegramText";
+            if($popup["state"] == "pending")
+                $txt .= "\n Please /join_popup $telegramText";
             $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, $txt, true, 'HTML');
         }else{
             $counter = 1;
@@ -320,7 +321,8 @@ switch ($telegramCommand) {
                 $txt .= "\n (" . $counter . ") " . $participant['name'];
                 $counter++;
             }
-            $txt .= "\n Please /join_popup $telegramText";
+            if($popup["state"] == "pending")
+                $txt .= "\n Please /join_popup $telegramText";
             $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, $txt, true, 'HTML');
         }
         
@@ -365,7 +367,7 @@ switch ($telegramCommand) {
         $participantCount = $popup["participants_count"];
         if($participantCount < 8 && $telegramTextLowerTrimmed != "start") {
             $txt = "There are only $participantCount participants, you may want to wait till 8 or type \"start\" to confirm /start_popup";
-            $telegramAPI->SendPromptMessage($telegramChatId, $txt, $telegramUserId);
+            $telegramAPI->SendPromptMessage($telegramChatId, $txt, $telegramMessageId);
             break;
         }
         
@@ -451,7 +453,52 @@ switch ($telegramCommand) {
         break;
     case "/opponent":
         //TODO: implement
-        $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, 'Undefined');
+        // init challonge
+        $challongeAPI = new ChallongeAPI($challonge_token);
+        // get all tournaments
+        // TODO: get tournamnets for only last 24 hours
+        $runningTournaments = $challongeAPI->GetTournamentsJSON(array(
+            "state" => "in_progress"
+        ));
+
+        if(count($runningTournaments) == 0) {
+            $txt = "There is no running popups";
+            $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, $txt);
+            break;
+        }
+
+        for($i = count($runningTournaments) -1; $i >= 0; $i--) {
+            $t = $runningTournaments[$i];
+            // get participants
+            $participants = $challongeAPI->GetParticipantsJSON($t["id"]);
+            if($participants == false)
+                continue;
+            // find user participant
+            $user_participant = $challongeAPI->GetParticipantByName($telegramUser["first_name"]);
+            if($user_participant == false)
+                continue;
+            // get participant matches
+
+            $matches = $challongeAPI->GetMatchesJSON($t["id"], array(
+                "state" => "open",
+                "participant_id" => $user_participant["id"]
+            ));
+            if($matches == false)
+                continue;
+
+            $opponent_participant = $challongeAPI->GetOpponentInMatch($matches[0], $user_participant["id"]);
+            if($opponent_participant == false)
+                continue;
+            else {
+                $txt = "Your opponent is " . $opponent_participant["name"];
+                $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, $txt);
+                break 2;
+            }
+            
+        }
+
+
+        $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, 'No opponent');
         break;
     case "/popup_results":
         //TODO: implement

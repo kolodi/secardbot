@@ -316,14 +316,64 @@ class ChallongeAPI {
         }
         $this->lastParticipants = $assocArray;
   			return $this->lastParticipants;
-  		}else{
-          return array();
-        }
+  		}
   			
   		return false;
   }
 
-  
+  public function GetParticipantByName($username) {
+    if(!$this->lastParticipants || count($this->lastParticipants) == 0)
+      return false;
+    foreach($this->lastParticipants as $p) {
+      if($p["name"] == $username) {
+        return $p;
+      }
+    }
+    return false;
+  }
+
+  public function GetParticipantById($participant_id) {
+    if(!$this->lastParticipants || count($this->lastParticipants) == 0)
+      return false;
+    foreach($this->lastParticipants as $p) {
+      if($p["id"] == $participant_id) {
+        return $p;
+      }
+    }
+    return false;
+  }
+
+  public $lastMatches;
+
+  public function GetMatchesJSON($tournament_id, $parameters) {
+    $callUrl = "https://api.challonge.com/v1/tournaments/$tournament_id/matches.json?";
+    $parameters["api_key"] = $this->api_key;
+    $callUrl .= http_build_query($parameters);
+    $result = file_get_contents($callUrl);
+
+    if($result)
+  			$assocArray = json_decode($result, true);
+  		if($assocArray && count($assocArray)) {
+  			foreach($assocArray as &$m) {
+          $m = $m["match"];
+        }
+        $this->lastMatches = $assocArray;
+  			return $this->lastMatches;
+  		}
+  			
+  		return false;
+  }
+
+  public function GetOpponentInMatch($match, $participant_id) {
+    if($match["player1_id"] == $participant_id)
+      return $this->GetParticipantById($match["player2_id"]);
+
+    if($match["player2_id"] == $participant_id)
+      return $this->GetParticipantById($match["player1_id"]);
+
+    return false;
+  }
+
 
 }
 ?>
