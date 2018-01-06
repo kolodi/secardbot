@@ -476,8 +476,71 @@ switch ($telegramCommand) {
         $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, 'Undefined');
         break;
     case "/report_score":
-        //TODO: implement
-        $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, 'Undefined');
+        
+        $challongeAPI = new ChallongeAPI($challonge_token);
+        $lastMatch = $challongeAPI->GetMyLastMatch($telegramUser["first_name"]);
+        if(!$lastMatch) {
+            $txt = "You have no open match";
+            $debugOutput = $telegramAPI->SendReplyMessage($telegramChatId, $txt, $telegramMessageId);
+            break;
+        }
+
+        if($telegramTextLowerTrimmed == "") {
+            $txt = "/report_score, please send the score in format [your_score]-[opponent_score], example: 2-1";
+            $debugOutput = $telegramAPI->SendPromptMessage($telegramChatId, $txt, $telegramMessageId);
+            break;
+        }
+
+        $wrongFormatMessage = "/report_score, wrong format, please report score in this format [your_score]-[opponent_score], example: 2-1";
+        $scoreTxt = str_replace(" ", "", $telegramTextLowerTrimmed);
+        if(strlen($scoreTxt) != 3) {
+            $debugOutput = $telegramAPI->SendPromptMessage($telegramChatId, $wrongFormatMessage, $telegramMessageId);
+            break;
+        }
+        $scores = explode("-", $scoreTxt);
+        if(count($scores) < 2) {
+            $debugOutput = $telegramAPI->SendPromptMessage($telegramChatId, $wrongFormatMessage, $telegramMessageId);
+            break;
+        }
+        $userScore = intval($scores[0]);
+        $opponentScore = intval($scores[1]);
+        if($userScore == 0 &&$opponentScore == 0) {
+            $txt = "/report_score, 0-0 is not vaid score";
+            $debugOutput = $telegramAPI->SendPromptMessage($telegramChatId, $txt, $telegramMessageId);
+            break;
+        }
+
+        // Here we have some valid score reported
+        $userParticipant = $challongeAPI->GetParticipantByName($telegramUser["first_name"]);
+        if(!$userParticipant) {
+            // consider to remove this check
+            // This is a weird case and should never happen, there MUST be user participant in lastParticipants
+            $txt = "Server Error";
+            $debugOutput = $telegramAPI->SendReplyMessage($telegramChatId, $txt, $telegramMessageId);
+            break;
+        }
+        if($lastMatch["player1_id"] != $userParticipant["id"]) {
+            // if user is not player1 in match (means it is player2)
+            // invert scores so the score of the user is second one in array
+            $scores = array_reverse($scores);
+        }
+
+        // prepare again score in text format
+        $scoreTxt = implode("-", $scores);
+        
+        $challongeAPI->updateMatch($lastMatch["tournament_id"], $lastMatch["id"], array(
+            "match[scores_csv]" => $scoreTxt
+        ));
+        if($challongeAPI->hasErrors() == false) {
+            $opponentParticipant = $challongeAPI->GetOpponentInMatch($lastMatch, $userParticipant["id"]);
+            $txt = "Score has been reported, ";
+            $txt .= $opponentParticipant["name"];
+            $txt .= " please /confirm_score";
+            $debugOutput = $telegramAPI->SendReplyMessage($telegramChatId, $txt, $telegramMessageId);
+            break;
+        }
+
+        $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, 'Error reporting score');
         break;
     case "/confirm_score":
         //TODO: implement
