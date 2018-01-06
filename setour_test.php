@@ -486,18 +486,20 @@ switch ($telegramCommand) {
         }
 
         if($telegramTextLowerTrimmed == "") {
-            $txt = "/report_score, please send the score in format [your_score]-[opponent_score], example: 2-1";
+            $txt = "/report_score, please send the score in format: YOURSCORE-OPPONENTSCORE (example: 2-1)";
             $debugOutput = $telegramAPI->SendPromptMessage($telegramChatId, $txt, $telegramMessageId);
             break;
         }
 
-        $wrongFormatMessage = "/report_score, wrong format, please report score in this format [your_score]-[opponent_score], example: 2-1";
+        $wrongFormatMessage = "/report_score, wrong format, please report score in format: YOURSCORE-OPPONENTSCORE (example: 2-1)";
         $scoreTxt = str_replace(" ", "", $telegramTextLowerTrimmed);
-        if(strlen($scoreTxt) != 3) {
+        if(strlen($scoreTxt) < 3) {
             $debugOutput = $telegramAPI->SendPromptMessage($telegramChatId, $wrongFormatMessage, $telegramMessageId);
             break;
         }
-        $scores = explode("-", $scoreTxt);
+
+        $scores = explode(",", $scoreTxt); // if there are more comma separated scores
+        $scores = explode("-", $scores[0]);
         if(count($scores) < 2) {
             $debugOutput = $telegramAPI->SendPromptMessage($telegramChatId, $wrongFormatMessage, $telegramMessageId);
             break;
@@ -505,7 +507,7 @@ switch ($telegramCommand) {
         $userScore = intval($scores[0]);
         $opponentScore = intval($scores[1]);
         if($userScore == 0 &&$opponentScore == 0) {
-            $txt = "/report_score, 0-0 is not vaid score";
+            $txt = "/report_score, 0-0 is not vaid score, please provide another score";
             $debugOutput = $telegramAPI->SendPromptMessage($telegramChatId, $txt, $telegramMessageId);
             break;
         }
@@ -527,15 +529,29 @@ switch ($telegramCommand) {
 
         // prepare again score in text format
         $scoreTxt = implode("-", $scores);
-        
-        $challongeAPI->updateMatch($lastMatch["tournament_id"], $lastMatch["id"], array(
+
+        $reportParameters = array(
             "match[scores_csv]" => $scoreTxt
-        ));
+        );
+        
+        $userIsWinner = $userScore > $opponentScore;
+        $opponentParticipant = $challongeAPI->GetOpponentInMatch($lastMatch, $userParticipant["id"]);
+        if($userIsWinner == false) {
+            //it means no confirm is needed, user can directly report own lose
+            $reportParameters["match[winner_id]"] = $opponentParticipant["id"];
+        }
+
+        $challongeAPI->updateMatch($lastMatch["tournament_id"], $lastMatch["id"], $reportParameters);
         if($challongeAPI->hasErrors() == false) {
-            $opponentParticipant = $challongeAPI->GetOpponentInMatch($lastMatch, $userParticipant["id"]);
-            $txt = "Score has been reported, ";
-            $txt .= $opponentParticipant["name"];
-            $txt .= " please /confirm_score";
+
+            $txt = "Score has been reported! ";
+            if($userIsWinner) {
+                $txt .= $userParticipant["name"] . " claims to win the match, "
+                . $opponentParticipant["name"] . " please /confirm_score";
+            } else {
+                $txt .= $opponentParticipant["name"] . " won the match";
+            }
+
             $debugOutput = $telegramAPI->SendReplyMessage($telegramChatId, $txt, $telegramMessageId);
             break;
         }
@@ -543,8 +559,53 @@ switch ($telegramCommand) {
         $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, 'Error reporting score');
         break;
     case "/confirm_score":
-        //TODO: implement
-        $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, 'Undefined');
+        
+        $challongeAPI = new ChallongeAPI($challonge_token);
+        $lastMatch = $challongeAPI->GetMyLastMatch($telegramUser["first_name"]);
+        if(!$lastMatch) {
+            $txt = "You have no open match";
+            $debugOutput = $telegramAPI->SendReplyMessage($telegramChatId, $txt, $telegramMessageId);
+            break;
+        }
+
+        $scoreTxt = $lastMatch["scores_csv"];
+        if($scoreTxt == "") {
+            $txt = "There is no score yet reported for your current match, you can /report_score ";
+            $txt .= "in format: YOURSCORE-OPPONENTSCORE (example: 2-1)";
+            $debugOutput = $telegramAPI->SendPromptMessage($telegramChatId, $txt, $telegramMessageId);
+            break;
+        }
+
+        $scores = explode(",", $scoreTxt); // if there are more comma separated scores
+        $scores = explode("-", $scores[0]);
+        $winnerId = $scores[0] > $scores[1] ? $lastMatch["player1_id"] : $lastMatch["player2_id"];
+
+        $userParticipant = $challongeAPI->GetParticipantByName($telegramUser["first_name"]);
+        if($userParticipant["id"] == $winnerId) {
+            $txt = "You cannot confirm own win";
+            $debugOutput = $telegramAPI->SendReplyMessage($telegramChatId, $txt, $telegramMessageId);
+            break;
+        }
+        
+        $challongeAPI->updateMatch($lastMatch["tournament_id"], $lastMatch["id"], array(
+            "match[scores_csv]" => $scoreTxt,
+            "match[winner_id]" => $winnerId
+        ));
+        
+        $winnerParticipant = $challongeAPI->GetParticipantById($winnerId);
+        if($challongeAPI->hasErrors() == false) {
+
+            $txt = "Score has been confirmed! ";
+            $txt .= $winnerParticipant["name"] . " won the match";
+
+            //TODO: check tournament status, if it was finals - display appropriate message
+            // or display next opponent for the winner
+
+            $debugOutput = $telegramAPI->SendReplyMessage($telegramChatId, $txt, $telegramMessageId);
+            break;
+        }
+
+        $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, 'Erorr confirm score');
         break;
     case "/start":
         //TODO: implement
