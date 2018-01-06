@@ -7,8 +7,8 @@ include "challonge/challonge.class.php";
  * CONFIGURATION
  *****************************************/
 $telegram_token = "494619184:AAGgqciTKBa4nIs2QmpxX4ZXdqTJp8EmTdQ";
-//$challonge_token = "i1Sax3ehsAUmFiq1N4gvuxElYpnqGAzCzKqAppMt"; //Jeff
-$challonge_token = "iWTgKx1WNQ48AJ77JMZNSHHfiil64WA7tMCsb0oC"; //Kolodi
+$challonge_token = "i1Sax3ehsAUmFiq1N4gvuxElYpnqGAzCzKqAppMt"; //Jeff
+//$challonge_token = "iWTgKx1WNQ48AJ77JMZNSHHfiil64WA7tMCsb0oC"; //Kolodi
 $tournament_types = array(
     "single" => "single elimination",
     "double" => "double elimination",
@@ -444,9 +444,42 @@ switch ($telegramCommand) {
         break;
 
     case "/quit_popup":
-        //TODO: implement
-        $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, 'Undefined');
+
+        $challongeAPI = new ChallongeAPI($challonge_token);
+
+        // get all tournaments joined by the user
+        $tournamentsByUser = $challongeAPI->GetMyTournaments($telegramUser["first_name"]);
+
+        if(count($tournamentsByUser) == 0) {
+            $txt = "You have not joined any popups to quit from";
+            $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, $txt);
+            break;
+
+        }elseif(count($tournamentsByUser) > 1){
+            //This is weird case, user can not have more than 1 pending popup
+            $txt = "Something gone wrong, multiple pending popups";
+            $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, $txt);
+            break;
+
+        }else{
+            //--Only one tournament to quit from--
+            $popup = $tournamentsByUser[0];
+            $popupName = $popup["name"];
+            $participantId = $popup['participant_id'];
+            if($telegramTextLowerTrimmed != "quit") {
+                $txt = "/quit_popup. Are you sure to quit $popupName, please type \"QUIT\" to confirm";
+                $debugOutput = $telegramAPI->SendPromptMessage($telegramChatId, $txt, $telegramMessageId);
+                break;
+            }
+        }
+
+        $challonge_response = $challongeAPI->deleteParticipant($popup['id'], $participantId);
+
+        $txt = "You have quit popup $popupName";
+        $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, $txt);
+
         break;
+
     case "/kick":
         //TODO: implement
         $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, 'Undefined');
