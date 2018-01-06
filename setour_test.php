@@ -454,49 +454,20 @@ switch ($telegramCommand) {
     case "/opponent":
         //TODO: implement
         // init challonge
+        
         $challongeAPI = new ChallongeAPI($challonge_token);
-        // get all tournaments
-        // TODO: get tournamnets for only last 24 hours
-        $runningTournaments = $challongeAPI->GetTournamentsJSON(array(
-            "state" => "in_progress"
-        ));
+        
+        $lastMatch = $challongeAPI->GetMyLastMatch($telegramUser["first_name"]);
 
-        if(count($runningTournaments) == 0) {
-            $txt = "There is no running popups";
-            $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, $txt);
-            break;
-        }
-
-        for($i = count($runningTournaments) -1; $i >= 0; $i--) {
-            $t = $runningTournaments[$i];
-            // get participants
-            $participants = $challongeAPI->GetParticipantsJSON($t["id"]);
-            if($participants == false)
-                continue;
-            // find user participant
-            $user_participant = $challongeAPI->GetParticipantByName($telegramUser["first_name"]);
-            if($user_participant == false)
-                continue;
-            // get participant matches
-
-            $matches = $challongeAPI->GetMatchesJSON($t["id"], array(
-                "state" => "open",
-                "participant_id" => $user_participant["id"]
-            ));
-            if($matches == false)
-                continue;
-
-            $opponent_participant = $challongeAPI->GetOpponentInMatch($matches[0], $user_participant["id"]);
-            if($opponent_participant == false)
-                continue;
-            else {
+        if($lastMatch) {
+            $opponent_participant = $challongeAPI->GetOpponentInMatch($lastMatch, $lastMatch["user_participant"]["id"]);
+            if($opponent_participant != false)
+            {
                 $txt = "Your opponent is " . $opponent_participant["name"];
                 $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, $txt);
-                break 2;
+                break;
             }
-            
         }
-
 
         $debugOutput = $telegramAPI->SendSimpleMessage($telegramChatId, 'No opponent');
         break;
@@ -526,4 +497,5 @@ switch ($telegramCommand) {
 
 
 header('Content-Type: application/json');
-echo $debugOutput;
+$parsedDebug = json_decode($debugOutput);
+echo json_encode($parsedDebug, JSON_PRETTY_PRINT);

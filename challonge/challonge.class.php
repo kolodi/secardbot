@@ -251,8 +251,6 @@ class ChallongeAPI {
         );
       }
       return $this->lastTournaments;
-    } else {
-      return array();
     }
 
     return false;
@@ -374,6 +372,39 @@ class ChallongeAPI {
     return false;
   }
 
+  public function GetMyLastMatch($username) {
+    // TODO: get tournamnets for only last 24 hours
+    $runningTournaments = $this->GetTournamentsJSON(array(
+      "state" => "in_progress"
+    ));
+    if(!$runningTournaments || count($runningTournaments) == 0) {
+      return false;
+    }
+
+    for($i = count($runningTournaments) -1; $i >= 0; $i--) {
+      $t = $runningTournaments[$i];
+      // get participants
+      $participants = $this->GetParticipantsJSON($t["id"]);
+      if($participants == false)
+          continue;
+      // find user participant
+      $user_participant = $this->GetParticipantByName($username);
+      if($user_participant == false)
+          continue;
+      // get participant matches
+      $matches = $this->GetMatchesJSON($t["id"], array(
+          "state" => "open",
+          "participant_id" => $user_participant["id"]
+      ));
+      if($matches && count($matches)) {
+        // inject user participand id (one that called) into match array
+        $matches[0]["user_participant"] = $user_participant;
+        return $matches[0];
+      }
+      
+    }
+    return false;
+  }
 
 }
 ?>
