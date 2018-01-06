@@ -308,11 +308,15 @@ class ChallongeAPI {
   		if($result)
   			$assocArray = json_decode($result, true);
   		if($assocArray && count($assocArray)) {
-  			foreach($assocArray as &$t) {
-              $t = isset($t["participant"]) ? $t["participant"] : array();
+            foreach($assocArray as $key => &$t) {
+              if(isset($t["participant"]) && $t["participant"]["active"] == 1) {
+                $t = $t["participant"];
+              }else{
+                unset($assocArray[$key]);
+              }
               // TODO: extract telegram user data and IGN
             }
-            $this->lastParticipants = $assocArray;
+            $this->lastParticipants = array_values($assocArray);
   			return $this->lastParticipants;
   		}
   			
@@ -386,15 +390,14 @@ class ChallongeAPI {
       if(!$participants) continue;
 
       foreach($participants as $p) {
-        if(isset($p['name']) && strtolower(trim($p['name'])) == strtolower(trim($username))) {
+        if(isset($p['active']) && $p['active'] == 1
+           && isset($p['name']) && strtolower(trim($p['name'])) == strtolower(trim($username))) {
           $t['participant_id'] = $p['id'];
           $this->lastTournaments[] = $t;
           break;
         }
       }
-
     }
-
     return $this->lastTournaments;
   }
 
