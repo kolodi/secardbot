@@ -308,11 +308,15 @@ class ChallongeAPI {
   		if($result)
   			$assocArray = json_decode($result, true);
   		if($assocArray && count($assocArray)) {
-  			foreach($assocArray as &$t) {
-          $t = $t["participant"];
-          // TODO: extract telegram user data and IGN
-        }
-        $this->lastParticipants = $assocArray;
+            foreach($assocArray as $key => &$t) {
+              if(isset($t["participant"]) && $t["participant"]["active"] == 1) {
+                $t = $t["participant"];
+              }else{
+                unset($assocArray[$key]);
+              }
+              // TODO: extract telegram user data and IGN
+            }
+            $this->lastParticipants = array_values($assocArray);
   			return $this->lastParticipants;
   		}
   			
@@ -370,6 +374,31 @@ class ChallongeAPI {
       return $this->GetParticipantById($match["player1_id"]);
 
     return false;
+  }
+
+  public function GetMyTournaments($username)
+  {
+    $tournaments = $this->GetTournamentsJSON();
+    $this->lastTournaments = array();
+
+    if(!$tournaments || count($tournaments) == 0) {
+      return $this->lastTournaments;
+    }
+
+    foreach($tournaments as &$t){
+      $participants = $this->GetParticipantsJSON($t['id']);
+      if(!$participants) continue;
+
+      foreach($participants as $p) {
+        if(isset($p['active']) && $p['active'] == 1
+           && isset($p['name']) && strtolower(trim($p['name'])) == strtolower(trim($username))) {
+          $t['participant_id'] = $p['id'];
+          $this->lastTournaments[] = $t;
+          break;
+        }
+      }
+    }
+    return $this->lastTournaments;
   }
 
   public function GetMyLastMatch($username) {
